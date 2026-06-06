@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Appointment System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Doctor Appointment System</h1>
+        
+        <div id="main-menu" class="menu">
+            <button onclick="showRegister()">📝 Patient Registration</button>
+            <button onclick="showLogin()">🔑 Patient Login</button>
+            <button onclick="showDoctors()">👨‍⚕️ View Doctors</button>
+            <button onclick="showAdminLogin()">🔐 Admin Login</button>
+        </div>
+
+        <!-- All other HTML sections remain the same -->
+        <div id="register-form" class="form-container" style="display:none">
+            <h2>Patient Registration</h2>
+            <input type="text" id="reg-name" placeholder="Full Name" required>
+            <input type="tel" id="reg-phone" placeholder="Phone (10 digits)" required>
+            <input type="email" id="reg-email" placeholder="Email" required>
+            <input type="password" id="reg-password" placeholder="Password" required>
+            <input type="number" id="reg-age" placeholder="Age">
+            <select id="reg-gender">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+            <textarea id="reg-address" placeholder="Address"></textarea>
+            <button onclick="register()">Register</button>
+            <button onclick="backToMenu()">Back</button>
+            <div id="reg-message"></div>
+        </div>
+
+        <div id="login-form" class="form-container" style="display:none">
+            <h2>Patient Login</h2>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button onclick="login()">Login</button>
+            <button onclick="backToMenu()">Back</button>
+            <div id="login-message"></div>
+        </div>
+
+        <div id="admin-login-form" class="form-container" style="display:none">
+            <h2>Admin Login</h2>
+            <input type="text" id="admin-username" placeholder="Username" required>
+            <input type="password" id="admin-password" placeholder="Password" required>
+            <button onclick="adminLogin()">Login</button>
+            <button onclick="backToMenu()">Back</button>
+            <div id="admin-message"></div>
+        </div>
+
+        <div id="patient-dashboard" style="display:none">
+            <h2>Patient Dashboard</h2>
+            <div class="dashboard-menu">
+                <button onclick="showBookAppointment()">📅 Book Appointment</button>
+                <button onclick="showMyAppointments()">📋 My Appointments</button>
+                <button onclick="logout()">🚪 Logout</button>
+            </div>
+            <div id="dashboard-content"></div>
+        </div>
+
+        <div id="admin-dashboard" style="display:none">
+            <h2>Admin Dashboard</h2>
+            <div class="dashboard-menu">
+                <button onclick="showAddDoctor()">👨‍⚕️ Add Doctor</button>
+                <button onclick="showAllAppointments()">📋 All Appointments</button>
+                <button onclick="showTodayReport()">📊 Today's Report</button>
+                <button onclick="logout()">🚪 Logout</button>
+            </div>
+            <div id="admin-content"></div>
+        </div>
+
+        <div id="doctors-list" class="form-container" style="display:none">
+            <h2>Available Doctors</h2>
+            <div id="doctors-content"></div>
+            <button onclick="backToMenu()">Back</button>
+        </div>
+
+        <div id="book-form" class="form-container" style="display:none">
+            <h2>Book Appointment</h2>
+            <select id="book-doctor">
+                <option value="">Select Doctor</option>
+            </select>
+            <input type="date" id="book-date">
+            <select id="book-time">
+                <option value="">Select Time</option>
+                <option value="09:00">09:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="14:00">02:00 PM</option>
+                <option value="15:00">03:00 PM</option>
+                <option value="16:00">04:00 PM</option>
+            </select>
+            <textarea id="book-symptoms" placeholder="Symptoms (optional)"></textarea>
+            <button onclick="bookAppointment()">Book Appointment</button>
+            <button onclick="backToPatientDashboard()">Back</button>
+            <div id="book-message"></div>
+        </div>
+
+        <div id="my-appointments" class="form-container" style="display:none">
+            <h2>My Appointments</h2>
+            <div id="appointments-list"></div>
+            <button onclick="backToPatientDashboard()">Back</button>
+        </div>
+
+        <div id="add-doctor-form" class="form-container" style="display:none">
+            <h2>Add New Doctor</h2>
+            <input type="text" id="doc-name" placeholder="Doctor Name" required>
+            <input type="text" id="doc-specialization" placeholder="Specialization" required>
+            <input type="tel" id="doc-phone" placeholder="Phone" required>
+            <input type="email" id="doc-email" placeholder="Email">
+            <input type="number" id="doc-fee" placeholder="Consultation Fee" required>
+            <input type="number" id="doc-experience" placeholder="Years Experience" required>
+            <button onclick="addDoctor()">Add Doctor</button>
+            <button onclick="backToAdminDashboard()">Back</button>
+            <div id="add-doctor-message"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIGURATION ==========
+        const API_URL = 'http://localhost:5000/api';
+        
+        // ========== GLOBAL VARIABLES ==========
+        let currentPatientId = null;
+        let currentAdmin = null;
+        
+        // ========== UTILITY FUNCTIONS ==========
+        
+        function showMessage(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            element.innerHTML = `<div class="${isError ? 'error' : 'success'}">${message}</div>`;
+            setTimeout(() => {
+                if (element) element.innerHTML = '';
+            }, 3000);
+        }
+        
+        function hideAllSections() {
+            const sections = [
+                'main-menu', 'register-form', 'login-form', 'admin-login-form',
+                'patient-dashboard', 'admin-dashboard', 'doctors-list', 
+                'book-form', 'my-appointments', 'add-doctor-form'
+            ];
+            sections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }
+        
+        function backToMenu() {
+            hideAllSections();
+            document.getElementById('main-menu').style.display = 'block';
+        }
+        
+        function backToPatientDashboard() {
+            hideAllSections();
+            document.getElementById('patient-dashboard').style.display = 'block';
+            document.getElementById('dashboard-content').innerHTML = '';
+        }
+        
+        function backToAdminDashboard() {
+            hideAllSections();
+            document.getElementById('admin-dashboard').style.display = 'block';
+            document.getElementById('admin-content').innerHTML = '';
+        }
+        
+        function logout() {
+            currentPatientId = null;
+            currentAdmin = null;
+            backToMenu();
+        }
+        
+        // ========== PATIENT FUNCTIONS ==========
+        
+        function showRegister() {
+            hideAllSections();
+            document.getElementById('register-form').style.display = 'block';
+        }
+        
+        function register() {
+            const data = {
+                name: document.getElementById('reg-name').value,
+                phone: document.getElementById('reg-phone').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-password').value,
+                age: document.getElementById('reg-age').value,
+                gender: document.getElementById('reg-gender').value,
+                address: document.getElementById('reg-address').value
+            };
+            
+            if (!data.name || !data.phone || !data.email || !data.password) {
+                showMessage('reg-message', 'Please fill all required fields!', true);
+                return;
+            }
+            
+            if (!/^\d{10}$/.test(data.phone)) {
+                showMessage('reg-message', 'Phone number must be 10 digits!', true);
+                return;
+            }
+            
+            fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    showMessage('reg-message', `✅ Registration successful! Your Patient ID: ${result.patient_id}`);
+                    setTimeout(() => backToMenu(), 2000);
+                } else {
+                    showMessage('reg-message', `❌ ${result.error}`, true);
+                }
+            })
+            .catch(err => {
+                showMessage('reg-message', `❌ Connection error: ${err.message}`, true);
+            });
+        }
+        
+        function showLogin() {
+            hideAllSections();
+            document.getElementById('login-form').style.display = 'block';
+        }
+        
+        function login() {
+            const data = {
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value
+            };
+            
+            if (!data.email || !data.password) {
+                showMessage('login-message', 'Please enter email and password!', true);
+                return;
+            }
+            
+            fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    currentPatientId = result.patient.patient_id;
+                    hideAllSections();
+                    document.getElementById('patient-dashboard').style.display = 'block';
+                    document.getElementById('dashboard-content').innerHTML = `<h3>Welcome, ${result.patient.name}! 🎉</h3>`;
+                } else {
+                    showMessage('login-message', `❌ ${result.error}`, true);
+                }
+            })
+            .catch(err => {
+                showMessage('login-message', `❌ Connection error: ${err.message}`, true);
+            });
+        }
+        
+        function showDoctors() {
+            hideAllSections();
+            document.getElementById('doctors-list').style.display = 'block';
+            
+            fetch(`${API_URL}/doctors`)
+                .then(res => res.json())
+                .then(doctors => {
+                    let html = '';
+                    if (doctors.length === 0) {
+                        html = '<p>No doctors available.</p>';
+                    } else {
+                        doctors.forEach(doc => {
+                            html += `
+                                <div class="doctor-card">
+                                    <h3>👨‍⚕️ ${doc.name}</h3>
+                                    <p><strong>Specialization:</strong> ${doc.specialization}</p>
+                                    <p><strong>Consultation Fee:</strong> ₹${doc.fee}</p>
+                                </div>
+                            `;
+                        });
+                    }
+                    document.getElementById('doctors-content').innerHTML = html;
+                })
+                .catch(err => {
+                    document.getElementById('doctors-content').innerHTML = `<div class="error">Error loading doctors: ${err.message}</div>`;
+                });
+        }
+        
+        function showBookAppointment() {
+            hideAllSections();
+            document.getElementById('book-form').style.display = 'block';
+            
+            fetch(`${API_URL}/doctors`)
+                .then(res => res.json())
+                .then(doctors => {
+                    let options = '<option value="">Select Doctor</option>';
+                    doctors.forEach(doc => {
+                        options += `<option value="${doc.doctor_id}">${doc.name} - ${doc.specialization} (₹${doc.fee})</option>`;
+                    });
+                    document.getElementById('book-doctor').innerHTML = options;
+                });
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('book-date').min = today;
+        }
+        
+        function bookAppointment() {
+            const data = {
+                patient_id: currentPatientId,
+                doctor_id: document.getElementById('book-doctor').value,
+                date: document.getElementById('book-date').value,
+                time: document.getElementById('book-time').value,
+                symptoms: document.getElementById('book-symptoms').value
+            };
+            
+            if (!data.doctor_id || !data.date || !data.time) {
+                showMessage('book-message', 'Please select doctor, date and time!', true);
+                return;
+            }
+            
+            fetch(`${API_URL}/book`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    showMessage('book-message', '✅ Appointment booked successfully!');
+                    setTimeout(() => backToPatientDashboard(), 1500);
+                } else {
+                    showMessage('book-message', `❌ ${result.error}`, true);
+                }
+            })
+            .catch(err => {
+                showMessage('book-message', `❌ Error: ${err.message}`, true);
+            });
+        }
+        
+        function showMyAppointments() {
+            hideAllSections();
+            document.getElementById('my-appointments').style.display = 'block';
+            
+            fetch(`${API_URL}/appointments/${currentPatientId}`)
+                .then(res => res.json())
+                .then(appointments => {
+                    let html = '';
+                    if (appointments.length === 0) {
+                        html = '<p>No appointments found. Book your first appointment!</p>';
+                    } else {
+                        appointments.forEach(app => {
+                            const statusIcon = app.status === 'Completed' ? '✅' : 
+                                             app.status === 'Cancelled' ? '❌' : '📅';
+                            html += `
+                                <div class="appointment-card">
+                                    <h3>${statusIcon} ${app.doctor_name}</h3>
+                                    <p><strong>Specialization:</strong> ${app.specialization}</p>
+                                    <p><strong>Date & Time:</strong> ${app.appointment_date} at ${app.appointment_time}</p>
+                                    <p><strong>Status:</strong> ${app.status}</p>
+                                    ${app.symptoms ? `<p><strong>Symptoms:</strong> ${app.symptoms}</p>` : ''}
+                                    ${app.status === 'Pending' ? 
+                                        `<button onclick="cancelAppointment(${app.appointment_id})" class="cancel-btn">Cancel Appointment</button>` : ''}
+                                </div>
+                            `;
+                        });
+                    }
+                    document.getElementById('appointments-list').innerHTML = html;
+                })
+                .catch(err => {
+                    document.getElementById('appointments-list').innerHTML = `<div class="error">Error: ${err.message}</div>`;
+                });
+        }
+        
+        function cancelAppointment(appointmentId) {
+            if (confirm('Are you sure you want to cancel this appointment?')) {
+                fetch(`${API_URL}/cancel/${appointmentId}`, {method: 'DELETE'})
+                    .then(() => {
+                        showMyAppointments();
+                    })
+                    .catch(err => {
+                        alert('Error cancelling appointment: ' + err.message);
+                    });
+            }
+        }
+        
+        // ========== ADMIN FUNCTIONS ==========
+        
+        function showAdminLogin() {
+            hideAllSections();
+            document.getElementById('admin-login-form').style.display = 'block';
+        }
+        
+        function adminLogin() {
+            const data = {
+                username: document.getElementById('admin-username').value,
+                password: document.getElementById('admin-password').value
+            };
+            
+            if (!data.username || !data.password) {
+                showMessage('admin-message', 'Please enter username and password!', true);
+                return;
+            }
+            
+            fetch(`${API_URL}/admin/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    currentAdmin = result.admin;
+                    hideAllSections();
+                    document.getElementById('admin-dashboard').style.display = 'block';
+                    document.getElementById('admin-content').innerHTML = `<h3>Welcome, ${result.admin.username}! 👑</h3>`;
+                } else {
+                    showMessage('admin-message', `❌ ${result.error}`, true);
+                }
+            })
+            .catch(err => {
+                showMessage('admin-message', `❌ Error: ${err.message}`, true);
+            });
+        }
+        
+        function showAddDoctor() {
+            hideAllSections();
+            document.getElementById('add-doctor-form').style.display = 'block';
+        }
+        
+        function addDoctor() {
+            const data = {
+                name: document.getElementById('doc-name').value,
+                specialization: document.getElementById('doc-specialization').value,
+                phone: document.getElementById('doc-phone').value,
+                email: document.getElementById('doc-email').value,
+                fee: document.getElementById('doc-fee').value,
+                experience: document.getElementById('doc-experience').value
+            };
+            
+            if (!data.name || !data.specialization || !data.phone || !data.fee || !data.experience) {
+                showMessage('add-doctor-message', 'Please fill all required fields!', true);
+                return;
+            }
+            
+            fetch(`${API_URL}/doctors/add`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    showMessage('add-doctor-message', '✅ Doctor added successfully!');
+                    setTimeout(() => backToAdminDashboard(), 1500);
+                } else {
+                    showMessage('add-doctor-message', `❌ ${result.error}`, true);
+                }
+            })
+            .catch(err => {
+                showMessage('add-doctor-message', `❌ Error: ${err.message}`, true);
+            });
+        }
+        
+        function showAllAppointments() {
+            fetch(`${API_URL}/all-appointments`)
+                .then(res => res.json())
+                .then(appointments => {
+                    let html = '<h3>📋 All Appointments</h3>';
+                    if (appointments.length === 0) {
+                        html += '<p>No appointments found.</p>';
+                    } else {
+                        appointments.forEach(app => {
+                            html += `
+                                <div class="appointment-card">
+                                    <p><strong>${app.patient}</strong> with <strong>${app.doctor}</strong></p>
+                                    <p>📅 ${app.appointment_date} at ${app.appointment_time}</p>
+                                    <p>Status: ${app.status}</p>
+                                </div>
+                            `;
+                        });
+                    }
+                    document.getElementById('admin-content').innerHTML = html;
+                })
+                .catch(err => {
+                    document.getElementById('admin-content').innerHTML = `<div class="error">Error: ${err.message}</div>`;
+                });
+        }
+        
+        function showTodayReport() {
+            fetch(`${API_URL}/report/today`)
+                .then(res => res.json())
+                .then(report => {
+                    document.getElementById('admin-content').innerHTML = `
+                        <div class="report">
+                            <h3>📊 Today's Report</h3>
+                            <p>📅 Date: ${new Date().toLocaleDateString()}</p>
+                            <p>📊 Total Appointments: ${report.total}</p>
+                            <p>✅ Completed: ${report.completed}</p>
+                            <p>⏳ Pending: ${report.pending}</p>
+                            <p>❌ Cancelled: ${report.cancelled}</p>
+                        </div>
+                    `;
+                })
+                .catch(err => {
+                    document.getElementById('admin-content').innerHTML = `<div class="error">Error: ${err.message}</div>`;
+                });
+        }
+    </script>
+</body>
+</html>

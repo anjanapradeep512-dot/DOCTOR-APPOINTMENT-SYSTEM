@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Appointment System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Doctor Appointment System</h1>
+        
+        <!-- ========== MAIN MENU ========== -->
+        <div id="main-menu" class="menu">
+            <button onclick="showRegister()">📝 Patient Registration</button>
+            <button onclick="showLogin()">🔑 Patient Login</button>
+            <button onclick="showDoctors()">👨‍⚕️ View Doctors</button>
+            <button onclick="showAdminLogin()">🔐 Admin Login</button>
+        </div>
+
+        <!-- ========== REGISTRATION FORM ========== -->
+        <div id="register-form" class="form-container" style="display:none">
+            <h2>Patient Registration</h2>
+            <input type="text" id="reg-name" placeholder="Full Name" required>
+            <input type="tel" id="reg-phone" placeholder="Phone (10 digits)" required>
+            <input type="email" id="reg-email" placeholder="Email" required>
+            <input type="password" id="reg-password" placeholder="Password" required>
+            <input type="number" id="reg-age" placeholder="Age">
+            <select id="reg-gender">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+            <textarea id="reg-address" placeholder="Address"></textarea>
+            <button onclick="register()">Register</button>
+            <button onclick="backToMenu()">Back</button>
+            <div id="reg-message"></div>
+        </div>
+
+        <!-- ========== PATIENT LOGIN FORM ========== -->
+        <div id="login-form" class="form-container" style="display:none">
+            <h2>Patient Login</h2>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button onclick="login()">Login</button>
+            <button onclick="backToMenu()">Back</button>
+            <div id="login-message"></div>
+        </div>
+
+        <!-- ========== ADMIN LOGIN FORM ========== -->
+        <div id="admin-login-form" class="form-container" style="display:none">
+            <h2>Admin Login</h2>
+            <input type="text" id="admin-username" placeholder="Username" required>
+            <input type="password" id="admin-password" placeholder="Password" required>
+            <button onclick="adminLogin()">Login</button>
+            <button onclick="backToMenu()">Back</button>
+            <div id="admin-message"></div>
+        </div>
+
+        <!-- ========== PATIENT DASHBOARD ========== -->
+        <div id="patient-dashboard" style="display:none">
+            <h2>Patient Dashboard</h2>
+            <div class="dashboard-menu">
+                <button onclick="showBookAppointment()">📅 Book Appointment</button>
+                <button onclick="showMyAppointments()">📋 My Appointments</button>
+                <button onclick="logout()">🚪 Logout</button>
+            </div>
+            <div id="dashboard-content"></div>
+        </div>
+
+        <!-- ========== ADMIN DASHBOARD ========== -->
+        <div id="admin-dashboard" style="display:none">
+            <h2>Admin Dashboard</h2>
+            <div class="dashboard-menu">
+                <button onclick="showAddDoctor()">👨‍⚕️ Add Doctor</button>
+                <button onclick="showAllAppointments()">📋 All Appointments</button>
+                <button onclick="showTodayReport()">📊 Today's Report</button>
+                <button onclick="logout()">🚪 Logout</button>
+            </div>
+            <div id="admin-content"></div>
+        </div>
+
+        <!-- ========== DOCTORS LIST ========== -->
+        <div id="doctors-list" class="form-container" style="display:none">
+            <h2>Available Doctors</h2>
+            <div id="doctors-content"></div>
+            <button onclick="backToMenu()">Back</button>
+        </div>
+
+        <!-- ========== BOOK APPOINTMENT FORM ========== -->
+        <div id="book-form" class="form-container" style="display:none">
+            <h2>Book Appointment</h2>
+            <select id="book-doctor">
+                <option value="">Select Doctor</option>
+            </select>
+            <input type="date" id="book-date">
+            <select id="book-time">
+                <option value="">Select Time</option>
+                <option value="09:00">09:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="14:00">02:00 PM</option>
+                <option value="15:00">03:00 PM</option>
+                <option value="16:00">04:00 PM</option>
+            </select>
+            <textarea id="book-symptoms" placeholder="Symptoms (optional)"></textarea>
+            <button onclick="bookAppointment()">Book Appointment</button>
+            <button onclick="backToPatientDashboard()">Back</button>
+            <div id="book-message"></div>
+        </div>
+
+        <!-- ========== MY APPOINTMENTS LIST ========== -->
+        <div id="my-appointments" class="form-container" style="display:none">
+            <h2>My Appointments</h2>
+            <div id="appointments-list"></div>
+            <button onclick="backToPatientDashboard()">Back</button>
+        </div>
+
+        <!-- ========== ADD DOCTOR FORM (ADMIN) ========== -->
+        <div id="add-doctor-form" class="form-container" style="display:none">
+            <h2>Add New Doctor</h2>
+            <input type="text" id="doc-name" placeholder="Doctor Name" required>
+            <input type="text" id="doc-specialization" placeholder="Specialization" required>
+            <input type="tel" id="doc-phone" placeholder="Phone" required>
+            <input type="email" id="doc-email" placeholder="Email">
+            <input type="number" id="doc-fee" placeholder="Consultation Fee" required>
+            <input type="number" id="doc-experience" placeholder="Years Experience" required>
+            <button onclick="addDoctor()">Add Doctor</button>
+            <button onclick="backToAdminDashboard()">Back</button>
+            <div id="add-doctor-message"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
